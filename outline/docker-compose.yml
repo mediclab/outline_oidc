@@ -27,9 +27,9 @@ services:
     volumes:
       - outline-db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready -U ${POSTGRES_OUTLINE_USERNAME}"]
-      interval: 30s
-      timeout: 20s
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_OUTLINE_USERNAME} -d ${POSTGRES_OUTLINE_DB_NAME}'"]
+      interval: 10s
+      timeout: 3s
       retries: 3
     environment:
       POSTGRES_USER: ${POSTGRES_OUTLINE_USERNAME}
