@@ -1,0 +1,29 @@
+services:
+  minio:
+    image: minio/minio:latest
+    env_file: .env
+    entrypoint: sh
+    command: -c 'minio server /data --console-address ":9001"'
+    restart: unless-stopped
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      POSTGRES_USER: ${POSTGRES_OUTLINE_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
+    labels:
+      - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN}`)
+      - traefik.http.services.minio.loadbalancer.server.port=9000
+      - traefik.http.routers.minio.tls=true
+      - traefik.http.routers.minio.tls.certresolver=letsencrypt
+      - traefik.http.routers.minio-admin.rule=Host(`${MINIO_ADMIN_DOMAIN}`)
+      - traefik.http.services.minio-admin.loadbalancer.server.port=9001
+      - traefik.http.routers.minio-admin.tls=true
+      - traefik.http.routers.minio-admin.tls.certresolver=letsencrypt
+
+volumes:
+  data:

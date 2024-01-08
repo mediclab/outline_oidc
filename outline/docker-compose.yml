@@ -1,0 +1,40 @@
+services:
+  outline:
+    image: outlinewiki/outline:latest
+    command: sh -c 'yarn sequelize db:migrate --env=production-ssl-disabled && yarn start'
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    labels:
+      - traefik.http.routers.outline.rule=Host(`${OUTLINE_DOMAIN}`)
+      - traefik.http.services.outline.loadbalancer.server.port=3000
+      - traefik.http.routers.outline.tls=true
+      - traefik.http.routers.outline.tls.certresolver=letsencrypt
+
+  redis:
+    image: redis:7.2-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+  postgres:
+    image: postgres:14.10-alpine
+    volumes:
+      - outline-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready -U ${POSTGRES_OUTLINE_USERNAME}"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      POSTGRES_USER: ${POSTGRES_OUTLINE_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_OUTLINE_DB_NAME}
+
+volumes:
+  outline-db:
