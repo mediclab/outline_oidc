@@ -6,6 +6,8 @@ services:
     command: |
        --api.insecure=true
        --providers.docker=true
+       --entrypoints.web.address=:80
+       --entrypoints.websecure.address=:443
        --certificatesresolvers.letsencrypt.acme.email=${USER_EMAIL}
        --certificatesresolvers.letsencrypt.acme.storage=acme.json
        --certificatesresolvers.letsencrypt.acme.httpchallenge=true
