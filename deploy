@@ -1,0 +1,127 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+init () {
+# Get User Email Address
+    while [[ ! $USER_EMAIL =~ ^.+@.+\..+$ ]] || [[ $USER_EMAIL == '' ]]
+    do
+        read -e -p "Enter Your Email [$(printf "${RED}REQUIRED${NC}")]: " USER_EMAIL
+        
+        if ! [[ $USER_EMAIL =~ ^.+@.+\..+$ ]]; then 
+            printf "[${RED}ERROR${NC}] Write a correct email address\n"
+        fi
+    done
+
+# Get User Domain Name
+    while [[ ! $USER_DOMAIN =~ ^.*\..*$ ]] || [[ $USER_DOMAIN == '' ]]
+    do
+        read -e -p "Enter Your Domain [$(printf "${RED}REQUIRED${NC}")]: " USER_DOMAIN
+        
+        if ! [[ $USER_DOMAIN =~ ^.*\..*$ ]]; then 
+            printf "[${RED}ERROR${NC}] Write a correct domain name\n"
+        fi
+    done
+
+    if dig +short ns $USER_DOMAIN | grep -q ns.cloudflare.com; then 
+        printf "[${YELLOW}WARNING${NC}] Cloudflare NS-servers found. IP checks will be skipped\n"
+    else
+        PUBLIC_IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
+
+        printf "Your public IP address: ${GREEN}${PUBLIC_IP_ADDRESS}${NC}\n"
+
+        if [[ $(dig +short a "wiki.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
+            printf "[${GREEN}SUCCESS${NC}] Check IP wiki.${USER_DOMAIN}\n"
+        else
+            printf "[${RED}ERROR${NC}] Check IP wiki.${USER_DOMAIN}\n"
+        fi
+
+        if [[ $(dig +short a "kk.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
+            printf "[${GREEN}SUCCESS${NC}] Check IP kk.${USER_DOMAIN}\n"
+        else
+            printf "[${RED}ERROR${NC}] Check IP kk.${USER_DOMAIN}\n"
+        fi
+
+        if [[ $(dig +short a "minio.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
+            printf "[${GREEN}SUCCESS${NC}] Check IP minio.${USER_DOMAIN}\n"
+        else
+            printf "[${RED}ERROR${NC}] Check IP minio.${USER_DOMAIN}\n"
+        fi
+
+        if [[ $(dig +short a "minio-admin.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
+            printf "[${GREEN}SUCCESS${NC}] Check IP minio-admin.${USER_DOMAIN}\n"
+        else
+            printf "[${RED}ERROR${NC}] Check IP minio-admin.${USER_DOMAIN}\n"
+        fi
+    fi
+
+    read -e -p "Enter Keycloak Admin Username: " -i "admin" KEYCLOAK_ADMIN_USERNAME
+    read -e -p "Enter Keycloak Realm for Outline: " -i "outline" KEYCLOAK_REALM_NAME
+    KEYCLOAK_ADMIN_PASSWORD=$(pass_gen 16)
+    KEYCLOAK_CLIENT_SECRET=$(pass_gen 32)
+
+    read -e -p "Enter MiniO Root Username: " -i "admin" MINIO_ROOT_USERNAME
+    MINIO_ROOT_PASSWORD=$(pass_gen 16)
+    read -e -p "Enter MiniO Bucket for Outline Name: " -i "outline" MINIO_BUCKET_NAME
+    read -e -p "Enter MiniO Bucket for Outline Username: " -i "outline" MINIO_BUCKET_USERNAME
+    MINIO_BUCKET_PASSWORD=$(pass_gen 16)
+
+    read -e -p "Enter Outline Database User: " -i "outline" POSTGRES_OUTLINE_USERNAME
+    read -e -p "Enter Outline Database: " -i "outline" POSTGRES_OUTLINE_DB_NAME
+    POSTGRES_OUTLINE_PASSWORD=$(pass_gen 16)
+
+    OUTLINE_SECRET_KEY=$(hash_gen)
+    OUTLINE_UTILS_SECRET=$(hash_gen)
+
+    tee .env <<EOF  > /dev/null
+# –––––––––––––––– NOT OUTLINE ENVS ––––––––––––––––
+USER_DOMAIN=$USER_DOMAIN
+USER_EMAIL=$USER_EMAIL
+KEYCLOAK_DOMAIN=kk.\${USER_DOMAIN}
+MINIO_DOMAIN=minio.\${USER_DOMAIN}
+MINIO_ADMIN_DOMAIN=minio.\${USER_DOMAIN}
+OUTLINE_DOMAIN=wiki.\${USER_DOMAIN}
+
+# POSTGRES
+POSTGRES_OUTLINE_USERNAME=$POSTGRES_OUTLINE_USERNAME
+POSTGRES_OUTLINE_DB_NAME=$POSTGRES_OUTLINE_DB_NAME
+POSTGRES_OUTLINE_PASSWORD=$POSTGRES_OUTLINE_PASSWORD
+
+# MINIO
+MINIO_ROOT_USERNAME=$MINIO_ROOT_USERNAME
+MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD
+MINIO_BUCKET_NAME=$MINIO_BUCKET_NAME
+MINIO_BUCKET_USERNAME=$MINIO_BUCKET_USERNAME
+MINIO_BUCKET_PASSWORD=$MINIO_BUCKET_PASSWORD
+
+# KEYCLOAK
+KEYCLOAK_REALM_NAME=$KEYCLOAK_REALM_NAME
+KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+
+# OUTLINE
+OUTLINE_SECRET_KEY=$OUTLINE_SECRET_KEY
+OUTLINE_UTILS_SECRET=$OUTLINE_UTILS_SECRET
+EOF
+}
+
+pass_gen () {
+    local len="${1:-32}"
+    echo $(tr -dc A-Za-z0-9 </dev/urandom | head -c $len)
+}
+
+hash_gen () {
+    local len="${1:-32}"
+    echo $(openssl rand -hex $len)
+}
+
+case "$1" in
+    init)
+        init
+    ;;
+    *)
+        printf "[${RED}ERROR${NC}] Unknown command\n"
+    ;;
+esac

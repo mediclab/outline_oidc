@@ -13,8 +13,8 @@ services:
       timeout: 20s
       retries: 3
     environment:
-      POSTGRES_USER: ${POSTGRES_OUTLINE_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
+      MINIO_ROOT_USER: ${POSTGRES_OUTLINE_USERNAME}
+      MINIO_ROOT_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
     labels:
       - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN}`)
       - traefik.http.services.minio.loadbalancer.server.port=9000
