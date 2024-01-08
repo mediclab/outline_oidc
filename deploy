@@ -137,17 +137,17 @@ deploy () {
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f keycloak/docker-compose.yml up -d
-
     printf '\n\tWaiting for keycloak starts  '
 
-    while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 0.1; done; done
+    docker-compose -f keycloak/docker-compose.yml up -d >> /dev/null
 
-    print '\n'
+    while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+
+    printf '\n'
 
     docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080/auth/ --realm master --user $KEYCLOAK_ADMIN_USERNAME --password $KEYCLOAK_ADMIN_PASSWORD
     docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh create realms -s realm=$KEYCLOAK_REALM_NAME -s enabled=true
-    docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh create clients -r $KEYCLOAK_REALM_NAME -s enabled=true -s rootUrl="https://${OUTLINE_DOMAIN}" -s clientId="${KEYCLOAK_CLIENT_ID}" -s redirectUris="[\"https://${OUTLINE_DOMAIN}/*\"]" -s webOrigins="[\"https://${OUTLINE_DOMAIN}/\"]" -s adminUrl="https://${OUTLINE_DOMAIN}" -s secret="${$KEYCLOAK_CLIENT_SECRET}"
+    docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh create clients -r $KEYCLOAK_REALM_NAME -s enabled=true -s rootUrl="https://${OUTLINE_DOMAIN}" -s clientId="${KEYCLOAK_CLIENT_ID}" -s redirectUris="[\"https://${OUTLINE_DOMAIN}/*\"]" -s webOrigins="[\"https://${OUTLINE_DOMAIN}/\"]" -s adminUrl="https://${OUTLINE_DOMAIN}" -s secret="${KEYCLOAK_CLIENT_SECRET}"
 
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
