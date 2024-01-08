@@ -6,10 +6,10 @@ services:
     volumes:
       - data:/opt/jboss/keycloak/standalone/data/
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/auth/"]
       interval: 30s
-      timeout: 20s
-      retries: 3
+      timeout: 5s
+      retries: 6
     environment:
       DB_VENDOR: h2
       KEYCLOAK_FRONTEND_URL: https://${KEYCLOAK_DOMAIN}/auth
