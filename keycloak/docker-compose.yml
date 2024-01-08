@@ -2,7 +2,6 @@ services:
   keycloak:
     #latest keycloak is 16.1.1 of this image
     image: jboss/keycloak:16.1.1
-    env_file: .env
     restart: unless-stopped
     volumes:
       - data:/opt/jboss/keycloak/standalone/data/
@@ -11,6 +10,11 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    environment:
+      DB_VENDOR: h2
+      KEYCLOAK_FRONTEND_URL: https://${KEYCLOAK_DOMAIN}/auth
+      KEYCLOAK_USER: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     labels:
       - traefik.http.routers.keycloak.rule=Host(`${KEYCLOAK_DOMAIN}`)
       - traefik.http.services.keycloak.loadbalancer.server.port=8080

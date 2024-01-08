@@ -1,7 +1,6 @@
 services:
   minio:
     image: minio/minio:latest
-    env_file: .env
     entrypoint: sh
     command: -c 'minio server /data --console-address ":9001"'
     restart: unless-stopped
