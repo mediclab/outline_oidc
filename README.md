@@ -1,11 +1,10 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/31465/34380645-bd67f474-eb0b-11e7-8d03-0151c1730654.png" height="29" style="margin-right:20px" />
-  <img src="https://min.io/resources/img/logo/MINIO_wordmark.png" height="29" style="margin-right:20px" />
-  <img src="https://www.keycloak.org/resources/images/logo.svg" height="29" style="margin-right:20px" />
-  
+  <img src="https://github.com/mediclab/outline_oidc/assets/1334139/5bb9400f-c03b-4180-8d03-3000b25fccf3" height="29" style="margin-right:20px" />
+  <img src="https://github.com/mediclab/outline_oidc/assets/1334139/38ac19d7-74cd-421a-964b-38d75e359280" height="29" style="margin-right:20px" />
+  <img src="https://github.com/mediclab/outline_oidc/assets/1334139/018665cd-43a1-49c6-982f-eda63ad0923b" height="29" />
 </p>
 <p align="center">
-  <img src="https://4057985046-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2F-MhuHu35r-jv6X4gG8MQ%2Fuploads%2FCFOkzlFh23IMYvSkSoe6%2Ftraefik-logo.jpg?alt=media&token=33c6b6a6-fb44-4b89-bce3-1c13ee62d0ce" height="80" />
+  <img src="https://github.com/mediclab/outline_oidc/assets/1334139/a555abb0-986f-4151-957d-1278667d6302" height="80" />
 </p>
 
 # Installation
