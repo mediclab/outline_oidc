@@ -143,7 +143,7 @@ deploy () {
 
     docker-compose -f keycloak/docker-compose.yml --log-level ERROR up -d
 
-    while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | grep -q "(healthy)") ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+    while ! docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | grep -q "(healthy)"; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
     printf '\n'
 
@@ -155,7 +155,7 @@ deploy () {
 
     docker-compose -f minio/docker-compose.yml up -d --log-level ERROR
 
-    while [[ ! $(docker-compose -f minio/docker-compose.yml ps | grep minio | grep -q "(healthy)") ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+    while ! docker-compose -f minio/docker-compose.yml ps | grep minio | grep -q "(healthy)"; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
     printf '\n'
 
