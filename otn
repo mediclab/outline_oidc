@@ -141,9 +141,9 @@ deploy () {
 
     printf '\n\tWaiting for keycloak starts  '
 
-    docker-compose -f keycloak/docker-compose.yml up -d > /dev/null
+    docker-compose -f keycloak/docker-compose.yml --log-level ERROR up -d
 
-    while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+    while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | grep -q "(healthy)") ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
     printf '\n'
 
@@ -153,14 +153,14 @@ deploy () {
 
     printf '\n\tWaiting for minio starts  '
 
-    docker-compose -f minio/docker-compose.yml up -d > /dev/null
+    docker-compose -f minio/docker-compose.yml up -d --log-level ERROR
 
-    while [[ ! $(docker-compose -f minio/docker-compose.yml ps | grep minio | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+    while [[ ! $(docker-compose -f minio/docker-compose.yml ps | grep minio | grep -q "(healthy)") ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
     printf '\n'
 
-    docker-compose -f outline/docker-compose.yml up -d
-    docker-compose -f traefik/docker-compose.yml up -d
+    docker-compose -f outline/docker-compose.yml --log-level ERROR up -d
+    docker-compose -f traefik/docker-compose.yml --log-level ERROR up -d
 }
 
 up () {
@@ -192,7 +192,7 @@ stop () {
 
 down () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
-    
+
     docker-compose -f traefik/docker-compose.yml down
     docker-compose -f outline/docker-compose.yml down
     docker-compose -f minio/docker-compose.yml down
