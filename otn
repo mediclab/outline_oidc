@@ -173,37 +173,37 @@ deploy () {
 up () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
+    docker-compose -f traefik/docker-compose.yml up -d
     docker-compose -f keycloak/docker-compose.yml up -d
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
-    docker-compose -f traefik/docker-compose.yml up -d
 }
 
 start () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
+    docker-compose -f traefik/docker-compose.yml start
     docker-compose -f keycloak/docker-compose.yml start
     docker-compose -f minio/docker-compose.yml start
     docker-compose -f outline/docker-compose.yml start
-    docker-compose -f traefik/docker-compose.yml start
 }
 
 stop () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml stop
     docker-compose -f outline/docker-compose.yml stop
     docker-compose -f minio/docker-compose.yml stop
     docker-compose -f keycloak/docker-compose.yml stop
+    docker-compose -f traefik/docker-compose.yml stop
 }
 
 down () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml down
     docker-compose -f outline/docker-compose.yml down
     docker-compose -f minio/docker-compose.yml down
     docker-compose -f keycloak/docker-compose.yml down
+    docker-compose -f traefik/docker-compose.yml down
 }
 
 pass_gen () {
