@@ -158,7 +158,7 @@ if [ -f .deployed ]; then
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    if [ $2=true ]; then
+    if [ $1=true ]; then
         docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d &> /dev/null
     else
         docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
@@ -199,10 +199,10 @@ if [ -f .deployed ]; then
 up () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    if [ $2=true ]; then
-        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d &> /dev/null
+    if [ $1=true ]; then
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d
     else
-        docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
+        docker-compose -f traefik/docker-compose.yml up -d
     fi
 
     docker-compose -f keycloak/docker-compose.yml up -d
@@ -213,10 +213,10 @@ up () {
 start () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    if [ $2=true ]; then
-        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml start &> /dev/null
+    if [ $1=true ]; then
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml start
     else
-        docker-compose -f traefik/docker-compose.yml start &> /dev/null
+        docker-compose -f traefik/docker-compose.yml start
     fi
 
     docker-compose -f keycloak/docker-compose.yml start
