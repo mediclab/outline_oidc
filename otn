@@ -159,10 +159,10 @@ if [ -f .deployed ]; then
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
     if [ $2=true ]; then
-        DEBUG='-f traefik/docker-compose.debug.yml'
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d &> /dev/null
+    else
+        docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
     fi
-
-    docker-compose -f traefik/docker-compose.yml $DEBUG up -d &> /dev/null
 
     printf '\n\tWaiting for keycloak starts  '
 
@@ -200,10 +200,11 @@ up () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
     if [ $2=true ]; then
-        DEBUG='-f traefik/docker-compose.debug.yml'
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d &> /dev/null
+    else
+        docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
     fi
 
-    docker-compose -f traefik/docker-compose.yml $DEBUG up -d
     docker-compose -f keycloak/docker-compose.yml up -d
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
@@ -213,10 +214,11 @@ start () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
     if [ $2=true ]; then
-        DEBUG='-f traefik/docker-compose.debug.yml'
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml start &> /dev/null
+    else
+        docker-compose -f traefik/docker-compose.yml start &> /dev/null
     fi
 
-    docker-compose -f traefik/docker-compose.yml $DEBUG start
     docker-compose -f keycloak/docker-compose.yml start
     docker-compose -f minio/docker-compose.yml start
     docker-compose -f outline/docker-compose.yml start
