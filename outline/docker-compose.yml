@@ -11,6 +11,9 @@ services:
     labels:
       - traefik.http.routers.outline.rule=Host(`${OUTLINE_DOMAIN}`)
       - traefik.http.services.outline.loadbalancer.server.port=3000
+      - traefik.http.routers.outline.entrypoints=web
+      - traefik.http.middlewares.outline.redirectscheme.scheme=https
+      - traefik.http.middlewares.outline.redirectscheme.permanent=true
       - traefik.http.routers.outline.tls=true
       - traefik.http.routers.outline.tls.certresolver=letsencrypt
 

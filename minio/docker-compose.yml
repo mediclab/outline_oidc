@@ -15,12 +15,21 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USERNAME}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     labels:
+      - traefik.http.routers.minio.service=minio
       - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN}`)
       - traefik.http.services.minio.loadbalancer.server.port=9000
+      - traefik.http.routers.minio.entrypoints=web
+      - traefik.http.middlewares.minio.redirectscheme.scheme=https
+      - traefik.http.middlewares.minio.redirectscheme.permanent=true
       - traefik.http.routers.minio.tls=true
       - traefik.http.routers.minio.tls.certresolver=letsencrypt
+
+      - traefik.http.routers.minio-admin.service=minio
       - traefik.http.routers.minio-admin.rule=Host(`${MINIO_ADMIN_DOMAIN}`)
       - traefik.http.services.minio-admin.loadbalancer.server.port=9001
+      - traefik.http.routers.minio-admin.entrypoints=web
+      - traefik.http.middlewares.minio-admin.redirectscheme.scheme=https
+      - traefik.http.middlewares.minio-admin.redirectscheme.permanent=true
       - traefik.http.routers.minio-admin.tls=true
       - traefik.http.routers.minio-admin.tls.certresolver=letsencrypt
 
