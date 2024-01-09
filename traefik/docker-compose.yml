@@ -6,8 +6,10 @@ services:
     command: |
        --api.insecure=true
        --providers.docker=true
+       --entrypoints.web.address=:80
+       --entrypoints.websecure.address=:443
        --certificatesresolvers.letsencrypt.acme.email=${USER_EMAIL}
-       --certificatesresolvers.letsencrypt.acme.storage=acme.json
+       --certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json
        --certificatesresolvers.letsencrypt.acme.httpchallenge=true
        --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
     ports:
@@ -22,6 +24,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # ACME Sertificates Storage
       - letsencrypt:/etc/traefik/acme
+
+networks:
+  default:
+    name: traefik
 
 volumes:
   letsencrypt:

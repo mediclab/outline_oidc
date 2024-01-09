@@ -11,6 +11,8 @@ services:
     labels:
       - traefik.http.routers.outline.rule=Host(`${OUTLINE_DOMAIN}`)
       - traefik.http.services.outline.loadbalancer.server.port=3000
+      - traefik.http.middlewares.outline.redirectscheme.scheme=https
+      - traefik.http.middlewares.outline.redirectscheme.permanent=true
       - traefik.http.routers.outline.tls=true
       - traefik.http.routers.outline.tls.certresolver=letsencrypt
 
@@ -25,16 +27,21 @@ services:
   postgres:
     image: postgres:14.10-alpine
     volumes:
-      - outline-db:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready -U ${POSTGRES_OUTLINE_USERNAME}"]
-      interval: 30s
-      timeout: 20s
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_OUTLINE_USERNAME} -d ${POSTGRES_OUTLINE_DB_NAME}'"]
+      interval: 10s
+      timeout: 3s
       retries: 3
     environment:
       POSTGRES_USER: ${POSTGRES_OUTLINE_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
       POSTGRES_DB: ${POSTGRES_OUTLINE_DB_NAME}
 
+networks:
+  default:
+    name: traefik
+    external: true
+
 volumes:
-  outline-db:
+  database:
