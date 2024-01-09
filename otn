@@ -163,9 +163,11 @@ deploy () {
     docker-compose -f minio/docker-compose.yml exec minio mc admin user add local $MINIO_BUCKET_USERNAME "$MINIO_BUCKET_PASSWORD"
     docker-compose -f minio/docker-compose.yml exec minio mc mb local/$MINIO_BUCKET_NAME
 
-    printf '\n'
+    printf '\nWaiting for outline starts  \n'
 
     docker-compose -f outline/docker-compose.yml up -d &> /dev/null
+
+    printf "\n${GREEN}DONE${NC}\n"
 }
 
 up () {
