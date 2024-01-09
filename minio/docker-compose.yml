@@ -23,7 +23,7 @@ services:
       - traefik.http.routers.minio.tls=true
       - traefik.http.routers.minio.tls.certresolver=letsencrypt
 
-      - traefik.http.routers.minio-admin.service=minio
+      - traefik.http.routers.minio-admin.service=minio-admin
       - traefik.http.routers.minio-admin.rule=Host(`${MINIO_ADMIN_DOMAIN}`)
       - traefik.http.services.minio-admin.loadbalancer.server.port=9001
       - traefik.http.middlewares.minio-admin.redirectscheme.scheme=https

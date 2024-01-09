@@ -3,6 +3,7 @@
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 GREEN='\033[0;32m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
 init () {
@@ -26,6 +27,7 @@ init () {
     fi
 
 # Get User Email Address
+    printf "[${BLUE}INFO${NC}] Email address needed for LetsEncrypt SSL Certificates\n"
     while [[ ! $USER_EMAIL =~ ^.+@.+\..+$ ]] || [[ $USER_EMAIL == '' ]]
     do
         read -e -p "Enter Your Email [$(printf "${RED}REQUIRED${NC}")]: " USER_EMAIL
@@ -102,7 +104,7 @@ USER_DOMAIN=$USER_DOMAIN
 USER_EMAIL=$USER_EMAIL
 KEYCLOAK_DOMAIN=kk.\$USER_DOMAIN
 MINIO_DOMAIN=minio.\$USER_DOMAIN
-MINIO_ADMIN_DOMAIN=minio.\$USER_DOMAIN
+MINIO_ADMIN_DOMAIN=minio-admin.\$USER_DOMAIN
 OUTLINE_DOMAIN=wiki.\$USER_DOMAIN
 
 # POSTGRES
@@ -137,7 +139,7 @@ deploy () {
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker network create traefik
+    docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
 
     printf '\n\tWaiting for keycloak starts  '
 
@@ -157,10 +159,13 @@ deploy () {
 
     while ! docker-compose -f minio/docker-compose.yml ps | grep minio | grep -q "(healthy)"; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
+    docker-compose -f minio/docker-compose.yml exec minio mc alias set local http://localhost:9000 $MINIO_ROOT_USERNAME "$MINIO_ROOT_PASSWORD"
+    docker-compose -f minio/docker-compose.yml exec minio mc admin user add local $MINIO_BUCKET_USERNAME "$MINIO_BUCKET_PASSWORD"
+    docker-compose -f minio/docker-compose.yml exec minio mc mb local/$MINIO_BUCKET_NAME
+
     printf '\n'
 
     docker-compose -f outline/docker-compose.yml up -d &> /dev/null
-    docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
 }
 
 up () {
