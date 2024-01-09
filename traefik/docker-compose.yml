@@ -9,7 +9,7 @@ services:
        --entrypoints.web.address=:80
        --entrypoints.websecure.address=:443
        --certificatesresolvers.letsencrypt.acme.email=${USER_EMAIL}
-       --certificatesresolvers.letsencrypt.acme.storage=acme.json
+       --certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json
        --certificatesresolvers.letsencrypt.acme.httpchallenge=true
        --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
     ports:
