@@ -161,6 +161,7 @@ deploy () {
 
     docker-compose -f minio/docker-compose.yml exec minio mc alias set local http://localhost:9000 $MINIO_ROOT_USERNAME "$MINIO_ROOT_PASSWORD"
     docker-compose -f minio/docker-compose.yml exec minio mc admin user add local $MINIO_BUCKET_USERNAME "$MINIO_BUCKET_PASSWORD"
+    docker-compose -f minio/docker-compose.yml exec minio mc admin policy attach local readwrite --user $MINIO_BUCKET_USERNAME
     docker-compose -f minio/docker-compose.yml exec minio mc mb local/$MINIO_BUCKET_NAME
 
     printf '\nWaiting for outline starts  \n'
