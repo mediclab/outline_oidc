@@ -277,14 +277,14 @@ case "$1" in
         help
     ;;
     up)
-        if [ $2='--debug' ]; then
+        if [[ $2 == '--debug' ]]; then
             up true
         else
             up false
         fi
     ;;
     start)
-        if [ $2='--debug' ]; then
+        if [[ $2 == '--debug' ]]; then
             start true
         else
             start false
@@ -297,7 +297,7 @@ case "$1" in
         down
     ;;
     deploy)
-        if [ $2='--debug' ]; then
+        if [[ $2 == '--debug' ]]; then
             deploy true
         else
             deploy false
