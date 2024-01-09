@@ -137,6 +137,8 @@ deploy () {
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
+    docker network create traefik
+
     printf '\n\tWaiting for keycloak starts  '
 
     docker-compose -f keycloak/docker-compose.yml up -d > /dev/null
@@ -166,6 +168,13 @@ up () {
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
     docker-compose -f traefik/docker-compose.yml up -d
+}
+
+start () {
+    docker-compose -f keycloak/docker-compose.yml start
+    docker-compose -f minio/docker-compose.yml start
+    docker-compose -f outline/docker-compose.yml start
+    docker-compose -f traefik/docker-compose.yml start
 }
 
 stop () {
@@ -217,6 +226,9 @@ case "$1" in
     ;;
     up)
         up
+    ;;
+    start)
+        start
     ;;
     stop)
         stop
