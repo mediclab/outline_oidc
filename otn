@@ -41,10 +41,10 @@ init () {
     done
 
 # Get User Domain Name
-    while [[ ! $USER_DOMAIN =~ ^.*\..*$ ]] || [[ $USER_DOMAIN == '' ]]; do
+    while [[ ! $USER_DOMAIN =~ ^.+\..+$ ]] || [[ $USER_DOMAIN == '' ]]; do
         read -e -p "Enter Your Domain [$(printf "${RED}REQUIRED${NC}")]: " USER_DOMAIN
         
-        if ! [[ $USER_DOMAIN =~ ^.*\..*$ ]]; then 
+        if ! [[ $USER_DOMAIN =~ ^.+\..+$ ]]; then 
             printf "[${RED}ERROR${NC}] Write a correct domain name\n"
         fi
     done
@@ -158,7 +158,11 @@ if [ -f .deployed ]; then
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
+    if [ $2=true ]; then
+        DEBUG='-f traefik/docker-compose.debug.yml'
+    fi
+
+    docker-compose -f traefik/docker-compose.yml $DEBUG up -d &> /dev/null
 
     printf '\n\tWaiting for keycloak starts  '
 
@@ -195,7 +199,11 @@ if [ -f .deployed ]; then
 up () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml up -d
+    if [ $2=true ]; then
+        DEBUG='-f traefik/docker-compose.debug.yml'
+    fi
+
+    docker-compose -f traefik/docker-compose.yml $DEBUG up -d
     docker-compose -f keycloak/docker-compose.yml up -d
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
@@ -204,7 +212,11 @@ up () {
 start () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml start
+    if [ $2=true ]; then
+        DEBUG='-f traefik/docker-compose.debug.yml'
+    fi
+
+    docker-compose -f traefik/docker-compose.yml $DEBUG start
     docker-compose -f keycloak/docker-compose.yml start
     docker-compose -f minio/docker-compose.yml start
     docker-compose -f outline/docker-compose.yml start
@@ -243,9 +255,10 @@ help () {
 Outline Docker Deploy Script
 
     init    - Create .env file with required parameters.
-    deploy  - Run deploy of application.
-    up      - Starts stopped application.
+    deploy  - Run deploy of application. (--debug key will add traefik dashboard on 8080 port)
+    up      - Up application. (--debug key will add traefik dashboard on 8080 port)
     down    - Down application with removing containers.
+    start   - Starts stopped application. (--debug key will add traefik dashboard on 8080 port)
     stop    - Stops application.
     help    - Shows this help text.
 
@@ -262,10 +275,18 @@ case "$1" in
         help
     ;;
     up)
-        up
+        if [ $2='--debug' ]; then
+            up true
+        else
+            up false
+        fi
     ;;
     start)
-        start
+        if [ $2='--debug' ]; then
+            start true
+        else
+            start false
+        fi
     ;;
     stop)
         stop
@@ -274,7 +295,11 @@ case "$1" in
         down
     ;;
     deploy)
-        deploy
+        if [ $2='--debug' ]; then
+            deploy true
+        else
+            deploy false
+        fi
     ;;
     *)
         printf "[${RED}ERROR${NC}] Unknown command\n\n"
