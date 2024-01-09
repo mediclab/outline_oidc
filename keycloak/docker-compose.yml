@@ -21,5 +21,10 @@ services:
       - traefik.http.routers.keycloak.tls=true
       - traefik.http.routers.keycloak.tls.certresolver=letsencrypt
 
+networks:
+  default:
+    name: traefik
+    external: true
+
 volumes:
   data:

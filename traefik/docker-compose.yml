@@ -25,5 +25,9 @@ services:
       # ACME Sertificates Storage
       - letsencrypt:/etc/traefik/acme
 
+networks:
+  default:
+    name: traefik
+
 volumes:
   letsencrypt:

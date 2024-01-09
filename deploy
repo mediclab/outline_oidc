@@ -139,7 +139,7 @@ deploy () {
 
     printf '\n\tWaiting for keycloak starts  '
 
-    docker-compose -f keycloak/docker-compose.yml up -d >> /dev/null
+    docker-compose -f keycloak/docker-compose.yml up -d > /dev/null
 
     while [[ ! $(docker-compose -f keycloak/docker-compose.yml ps | grep keycloak | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
 
@@ -149,9 +149,37 @@ deploy () {
     docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh create realms -s realm=$KEYCLOAK_REALM_NAME -s enabled=true
     docker-compose -f keycloak/docker-compose.yml exec keycloak /opt/jboss/keycloak/bin/kcadm.sh create clients -r $KEYCLOAK_REALM_NAME -s enabled=true -s rootUrl="https://${OUTLINE_DOMAIN}" -s clientId="${KEYCLOAK_CLIENT_ID}" -s redirectUris="[\"https://${OUTLINE_DOMAIN}/*\"]" -s webOrigins="[\"https://${OUTLINE_DOMAIN}/\"]" -s adminUrl="https://${OUTLINE_DOMAIN}" -s secret="${KEYCLOAK_CLIENT_SECRET}"
 
+    printf '\n\tWaiting for minio starts  '
+
+    docker-compose -f minio/docker-compose.yml up -d > /dev/null
+
+    while [[ ! $(docker-compose -f minio/docker-compose.yml ps | grep minio | awk '{print $5}') = "(healthy)" ]]; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 1; done; done
+
+    printf '\n'
+
+    docker-compose -f outline/docker-compose.yml up -d
+    docker-compose -f traefik/docker-compose.yml up -d
+}
+
+up () {
+    docker-compose -f keycloak/docker-compose.yml up -d
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
     docker-compose -f traefik/docker-compose.yml up -d
+}
+
+stop () {
+    docker-compose -f traefik/docker-compose.yml stop
+    docker-compose -f outline/docker-compose.yml stop
+    docker-compose -f minio/docker-compose.yml stop
+    docker-compose -f keycloak/docker-compose.yml stop
+}
+
+down () {
+    docker-compose -f traefik/docker-compose.yml down
+    docker-compose -f outline/docker-compose.yml down
+    docker-compose -f minio/docker-compose.yml down
+    docker-compose -f keycloak/docker-compose.yml down
 }
 
 pass_gen () {
@@ -170,6 +198,9 @@ Outline Docker Deploy Script
 
     init    - Create .env file with required parameters.
     deploy  - Run deploy of application.
+    up      - Starts stopped application.
+    down    - Down application with removing containers.
+    stop    - Stops application.
     help    - Shows this help text.
 
 v.0.0.1
@@ -183,6 +214,15 @@ case "$1" in
     ;;
     help)
         help
+    ;;
+    up)
+        up
+    ;;
+    stop)
+        stop
+    ;;
+    down)
+        down
     ;;
     deploy)
         deploy

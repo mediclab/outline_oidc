@@ -7,13 +7,13 @@ services:
     volumes:
       - data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      test: ["CMD", "mc", "ready", "-q", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
-      MINIO_ROOT_USER: ${POSTGRES_OUTLINE_USERNAME}
-      MINIO_ROOT_PASSWORD: ${POSTGRES_OUTLINE_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USERNAME}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     labels:
       - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN}`)
       - traefik.http.services.minio.loadbalancer.server.port=9000
@@ -23,6 +23,11 @@ services:
       - traefik.http.services.minio-admin.loadbalancer.server.port=9001
       - traefik.http.routers.minio-admin.tls=true
       - traefik.http.routers.minio-admin.tls.certresolver=letsencrypt
+
+networks:
+  default:
+    name: traefik
+    external: true
 
 volumes:
   data:
