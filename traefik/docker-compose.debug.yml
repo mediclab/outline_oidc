@@ -1,10 +1,8 @@
 services:
   traefik:
-    # The official v2 Traefik docker image
-    image: traefik:v2.10
     # Enables the web UI and tells Traefik to listen to docker
     command: |
-       --api.dashboard=false
+       --api.insecure=true
        --providers.docker=true
        --entrypoints.web.address=:80
        --entrypoints.websecure.address=:443
@@ -17,15 +15,5 @@ services:
       - "80:80"
       # The HTTPS port
       - "443:443"
-    volumes:
-      # So that Traefik can listen to the Docker events
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # ACME Sertificates Storage
-      - letsencrypt:/etc/traefik/acme
-
-networks:
-  default:
-    name: traefik
-
-volumes:
-  letsencrypt:
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"

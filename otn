@@ -9,13 +9,17 @@ NC='\033[0m'
 init () {
     if [ -f .env ]; then
         while true; do
-            read -e -p "[$(printf "${YELLOW}WARNING${NC}")] Environment file already exists! Do you want overwrite file? This is can cause errors! (y/n) " yn
+            read -e -p "[$(printf "${YELLOW}WARNING${NC}")] Environment file already exists! Do you want overwrite file? This action may cause errors! (y/N) " yn
 
             case $yn in 
 	            [yY])
                     break
                 ;;
 	            [nN])
+                    echo Exit
+		            exit
+                ;;
+                '')
                     echo Exit
 		            exit
                 ;;
@@ -28,8 +32,7 @@ init () {
 
 # Get User Email Address
     printf "[${BLUE}INFO${NC}] Email address needed for LetsEncrypt SSL Certificates\n"
-    while [[ ! $USER_EMAIL =~ ^.+@.+\..+$ ]] || [[ $USER_EMAIL == '' ]]
-    do
+    while [[ ! $USER_EMAIL =~ ^.+@.+\..+$ ]] || [[ $USER_EMAIL == '' ]]; do
         read -e -p "Enter Your Email [$(printf "${RED}REQUIRED${NC}")]: " USER_EMAIL
         
         if ! [[ $USER_EMAIL =~ ^.+@.+\..+$ ]]; then 
@@ -38,45 +41,56 @@ init () {
     done
 
 # Get User Domain Name
-    while [[ ! $USER_DOMAIN =~ ^.*\..*$ ]] || [[ $USER_DOMAIN == '' ]]
-    do
+    while [[ ! $USER_DOMAIN =~ ^.+\..+$ ]] || [[ $USER_DOMAIN == '' ]]; do
         read -e -p "Enter Your Domain [$(printf "${RED}REQUIRED${NC}")]: " USER_DOMAIN
         
-        if ! [[ $USER_DOMAIN =~ ^.*\..*$ ]]; then 
+        if ! [[ $USER_DOMAIN =~ ^.+\..+$ ]]; then 
             printf "[${RED}ERROR${NC}] Write a correct domain name\n"
         fi
     done
 
-    if dig +short ns $USER_DOMAIN | grep -q ns.cloudflare.com; then 
-        printf "[${YELLOW}WARNING${NC}] Cloudflare NS-servers found. IP checks will be skipped\n"
+    read -e -p "Enter Outline Wiki Domain: " -i "wiki.$USER_DOMAIN" OUTLINE_DOMAIN
+    read -e -p "Enter Keycloak Domain: " -i "kk.$USER_DOMAIN" KEYCLOAK_DOMAIN
+    read -e -p "Enter MiniO Domain: " -i "minio.$USER_DOMAIN" MINIO_DOMAIN
+    read -e -p "Enter MiniO Admin Console Domain: " -i "minio-admin.$USER_DOMAIN" MINIO_ADMIN_DOMAIN
+
+    PUBLIC_IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
+    local DOMAIN_ERRORS=false
+
+    printf "Your public IP address: ${GREEN}${PUBLIC_IP_ADDRESS}${NC}\n"
+
+    if [[ $(dig +short a $OUTLINE_DOMAIN) = $PUBLIC_IP_ADDRESS ]]; then
+        printf "[${GREEN}SUCCESS${NC}] Check IP ${OUTLINE_DOMAIN}\n"
     else
-        PUBLIC_IP_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com)
+        printf "[${RED}ERROR${NC}] Check IP ${OUTLINE_DOMAIN}\n"
+        DOMAIN_ERRORS=true
+    fi
 
-        printf "Your public IP address: ${GREEN}${PUBLIC_IP_ADDRESS}${NC}\n"
+    if [[ $(dig +short a $KEYCLOAK_DOMAIN) = $PUBLIC_IP_ADDRESS ]]; then
+        printf "[${GREEN}SUCCESS${NC}] Check IP ${KEYCLOAK_DOMAIN}\n"
+    else
+        printf "[${RED}ERROR${NC}] Check IP ${KEYCLOAK_DOMAIN}\n"
+        DOMAIN_ERRORS=true
+    fi
 
-        if [[ $(dig +short a "wiki.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
-            printf "[${GREEN}SUCCESS${NC}] Check IP wiki.${USER_DOMAIN}\n"
-        else
-            printf "[${RED}ERROR${NC}] Check IP wiki.${USER_DOMAIN}\n"
-        fi
+    if [[ $(dig +short a $MINIO_DOMAIN) = $PUBLIC_IP_ADDRESS ]]; then
+        printf "[${GREEN}SUCCESS${NC}] Check IP ${MINIO_DOMAIN}\n"
+    else
+        printf "[${RED}ERROR${NC}] Check IP ${MINIO_DOMAIN}\n"
+        DOMAIN_ERRORS=true
+    fi
 
-        if [[ $(dig +short a "kk.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
-            printf "[${GREEN}SUCCESS${NC}] Check IP kk.${USER_DOMAIN}\n"
-        else
-            printf "[${RED}ERROR${NC}] Check IP kk.${USER_DOMAIN}\n"
-        fi
+    if [[ $(dig +short a $MINIO_ADMIN_DOMAIN) = $PUBLIC_IP_ADDRESS ]]; then
+        printf "[${GREEN}SUCCESS${NC}] Check IP ${MINIO_ADMIN_DOMAIN}\n"
+    else
+        printf "[${RED}ERROR${NC}] Check IP ${MINIO_ADMIN_DOMAIN}\n"
+        DOMAIN_ERRORS=true
+    fi
 
-        if [[ $(dig +short a "minio.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
-            printf "[${GREEN}SUCCESS${NC}] Check IP minio.${USER_DOMAIN}\n"
-        else
-            printf "[${RED}ERROR${NC}] Check IP minio.${USER_DOMAIN}\n"
-        fi
-
-        if [[ $(dig +short a "minio-admin.$USER_DOMAIN") = $PUBLIC_IP_ADDRESS ]]; then
-            printf "[${GREEN}SUCCESS${NC}] Check IP minio-admin.${USER_DOMAIN}\n"
-        else
-            printf "[${RED}ERROR${NC}] Check IP minio-admin.${USER_DOMAIN}\n"
-        fi
+    if [[ $DOMAIN_ERRORS = true ]]; then
+        printf "[${YELLOW}WARNING${NC}] Some domains do not have an A record that leads to the current server.
+          This is normal if you are using Cloudflare, or other DDos protection.
+          However, if you do not have such protection installed, pay attention to it.\n"
     fi
 
     read -e -p "Enter Keycloak Admin Username: " -i "admin" KEYCLOAK_ADMIN_USERNAME
@@ -102,10 +116,10 @@ init () {
 # –––––––––––––––– NOT OUTLINE ENVS ––––––––––––––––
 USER_DOMAIN=$USER_DOMAIN
 USER_EMAIL=$USER_EMAIL
-KEYCLOAK_DOMAIN=kk.\$USER_DOMAIN
-MINIO_DOMAIN=minio.\$USER_DOMAIN
-MINIO_ADMIN_DOMAIN=minio-admin.\$USER_DOMAIN
-OUTLINE_DOMAIN=wiki.\$USER_DOMAIN
+KEYCLOAK_DOMAIN=$KEYCLOAK_DOMAIN
+MINIO_DOMAIN=$MINIO_DOMAIN
+MINIO_ADMIN_DOMAIN=$MINIO_ADMIN_DOMAIN
+OUTLINE_DOMAIN=$OUTLINE_DOMAIN
 
 # POSTGRES
 POSTGRES_OUTLINE_USERNAME=$POSTGRES_OUTLINE_USERNAME
@@ -133,13 +147,22 @@ EOF
 }
 
 deploy () {
+if [ -f .deployed ]; then
+        printf "[${RED}ERROR${NC}] Already deployed. Re-deploying may cause errors\n"
+        exit
+    fi
+
     if ! [ -f .env ]; then
         init
     fi
 
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
+    if [[ $1 = true ]]; then
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d &> /dev/null
+    else
+        docker-compose -f traefik/docker-compose.yml up -d &> /dev/null
+    fi
 
     printf '\n\tWaiting for keycloak starts  '
 
@@ -169,12 +192,19 @@ deploy () {
     docker-compose -f outline/docker-compose.yml up -d &> /dev/null
 
     printf "\n${GREEN}DONE${NC}\n"
+
+    touch .deployed
 }
 
 up () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml up -d
+    if [[ $1 = true ]]; then
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml up -d
+    else
+        docker-compose -f traefik/docker-compose.yml up -d
+    fi
+
     docker-compose -f keycloak/docker-compose.yml up -d
     docker-compose -f minio/docker-compose.yml up -d
     docker-compose -f outline/docker-compose.yml up -d
@@ -183,7 +213,12 @@ up () {
 start () {
     export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 
-    docker-compose -f traefik/docker-compose.yml start
+    if [[ $1 = true ]]; then
+        docker-compose -f traefik/docker-compose.yml -f traefik/docker-compose.debug.yml start
+    else
+        docker-compose -f traefik/docker-compose.yml start
+    fi
+
     docker-compose -f keycloak/docker-compose.yml start
     docker-compose -f minio/docker-compose.yml start
     docker-compose -f outline/docker-compose.yml start
@@ -222,9 +257,10 @@ help () {
 Outline Docker Deploy Script
 
     init    - Create .env file with required parameters.
-    deploy  - Run deploy of application.
-    up      - Starts stopped application.
+    deploy  - Run deploy of application. (--debug key will add traefik dashboard on 8080 port)
+    up      - Up application. (--debug key will add traefik dashboard on 8080 port)
     down    - Down application with removing containers.
+    start   - Starts stopped application. (--debug key will add traefik dashboard on 8080 port)
     stop    - Stops application.
     help    - Shows this help text.
 
@@ -241,10 +277,18 @@ case "$1" in
         help
     ;;
     up)
-        up
+        if [[ $2 == '--debug' ]]; then
+            up true
+        else
+            up false
+        fi
     ;;
     start)
-        start
+        if [[ $2 == '--debug' ]]; then
+            start true
+        else
+            start false
+        fi
     ;;
     stop)
         stop
@@ -253,7 +297,11 @@ case "$1" in
         down
     ;;
     deploy)
-        deploy
+        if [[ $2 == '--debug' ]]; then
+            deploy true
+        else
+            deploy false
+        fi
     ;;
     *)
         printf "[${RED}ERROR${NC}] Unknown command\n\n"
