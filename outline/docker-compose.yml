@@ -1,6 +1,7 @@
 services:
   outline:
     image: outlinewiki/outline:latest
+    restart: unless-stopped
     command: sh -c 'yarn sequelize db:migrate --env=production-ssl-disabled && yarn start'
     env_file: .env
     depends_on:
@@ -18,6 +19,7 @@ services:
 
   redis:
     image: redis:7.2-alpine
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -26,6 +28,7 @@ services:
 
   postgres:
     image: postgres:14.10-alpine
+    restart: unless-stopped
     volumes:
       - database:/var/lib/postgresql/data
     healthcheck:
